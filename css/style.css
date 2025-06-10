@@ -4,29 +4,69 @@ body {
   color: #eee;
   padding: 20px;
 }
-input[type="file"] {
-  margin: 10px 0;
-}
+
 #controls {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
+  margin-bottom: 10px;
 }
+
+input[type="file"] {
+  margin-right: 10px;
+}
+
+#zoomValue {
+  width: 50px;
+  text-align: center;
+}
+
+button {
+  background: #444;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #666;
+}
+
+#dropZone {
+  border: 2px dashed #555;
+  padding: 20px;
+  text-align: center;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+#dropZone.dragover {
+  background-color: #333;
+}
+
 #columnsToggles {
-  margin-top: 10px;
+  margin: 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
+
+#tableWrapper {
+  overflow: auto;
+  max-width: 100%;
+  transform-origin: top left;
+}
+
 table {
   border-collapse: collapse;
   margin-top: 20px;
   width: 100%;
   table-layout: fixed;
 }
-#tableWrapper {
-  transform-origin: top left;
-  overflow: auto;
-  max-width: 100%;
-}
+
 th, td {
   border: 1px solid #444;
   padding: 6px 10px;
@@ -37,16 +77,16 @@ th, td {
   max-width: 1000px;
 }
 
+th {
+  background-color: #222;
+  position: sticky;
+  top: 0;
+}
+
 tr:nth-child(even) {
   background-color: #1a1a1a;
 }
+
 .hidden-col {
   display: none;
-}
-.zoom-wrapper {
-  transform-origin: top left;
-}
-#zoomValue {
-  width: 50px;
-  text-align: center;
 }
