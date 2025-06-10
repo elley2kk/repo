@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CSV Reader by elley</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -14,7 +15,7 @@
     <input type="range" id="zoom" min="0.1" max="1" step="0.01" value="1" />
     <input type="text" id="zoomValue" value="100%" readonly />
     <button id="saveBtn">💾 Сохранить</button>
-    <button id="clearBtn">Очистить всё</button>
+    <button id="clearBtn">🗑 Очистить</button>
   </div>
 
   <div id="dropZone">📥 Перетащи сюда .CSV файл</div>
@@ -34,6 +35,7 @@
     const clearBtn = document.getElementById('clearBtn');
     const saveBtn = document.getElementById('saveBtn');
 
+    // Масштаб
     zoomInput.addEventListener('input', () => {
       const scale = parseFloat(zoomInput.value);
       tableWrapper.style.transform = `scale(${scale})`;
@@ -41,6 +43,7 @@
       localStorage.setItem('csv_zoom', scale);
     });
 
+    // Видимость столбцов
     function saveColumnVisibility(index, visible) {
       localStorage.setItem('csv_col_visibility_' + index, visible ? '1' : '0');
     }
@@ -49,6 +52,7 @@
       return localStorage.getItem('csv_col_visibility_' + index) !== '0';
     }
 
+    // Ширина столбцов
     function saveColumnWidth(index, width) {
       localStorage.setItem('csv_col_width_' + index, width);
     }
@@ -65,6 +69,7 @@
       saveColumnVisibility(colIndex, visible);
     }
 
+    // Основной рендер
     function renderCsv(text) {
       const rows = text.split('\n').filter(r => r.trim() !== '');
       if (rows.length === 0) return;
@@ -133,9 +138,11 @@
       renderCsv(text);
     }
 
+    // Загрузка через input
     document.getElementById('csvFile').addEventListener('change', function (event) {
       const file = event.target.files[0];
       if (!file) return;
+
       const reader = new FileReader();
       reader.onload = e => loadCsvFromText(e.target.result);
       reader.readAsText(file);
@@ -146,9 +153,11 @@
       e.preventDefault();
       dropZone.classList.add('dragover');
     });
+
     dropZone.addEventListener('dragleave', () => {
       dropZone.classList.remove('dragover');
     });
+
     dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.classList.remove('dragover');
@@ -177,7 +186,7 @@
 
       const format = prompt('В каком формате сохранить? Введите "csv" или "txt":').trim().toLowerCase();
       if (!['csv', 'txt'].includes(format)) {
-        alert('Неверный формат. Введите "csv" или "txt".');
+        alert('Неверный формат');
         return;
       }
 
@@ -186,6 +195,7 @@
         const cells = Array.from(tr.querySelectorAll('th, td'))
           .filter(cell => !cell.classList.contains('hidden-col'))
           .map(cell => cell.textContent.trim());
+
         rows.push(format === 'csv' ? cells.join(',') : cells.join(':'));
       });
 
@@ -193,7 +203,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `export_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.${format}`;
+      a.download = `export_${new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19)}.${format}`;
       a.click();
       URL.revokeObjectURL(url);
     });
