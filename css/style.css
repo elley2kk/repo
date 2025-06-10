@@ -1,0 +1,52 @@
+body {
+  font-family: sans-serif;
+  background: #111;
+  color: #eee;
+  padding: 20px;
+}
+input[type="file"] {
+  margin: 10px 0;
+}
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+#columnsToggles {
+  margin-top: 10px;
+}
+table {
+  border-collapse: collapse;
+  margin-top: 20px;
+  width: 100%;
+  table-layout: fixed;
+}
+#tableWrapper {
+  transform-origin: top left;
+  overflow: auto;
+  max-width: 100%;
+}
+th, td {
+  border: 1px solid #444;
+  padding: 6px 10px;
+  text-align: left;
+  resize: horizontal;
+  overflow: hidden;
+  min-width: 50px;
+  max-width: 1000px;
+}
+
+tr:nth-child(even) {
+  background-color: #1a1a1a;
+}
+.hidden-col {
+  display: none;
+}
+.zoom-wrapper {
+  transform-origin: top left;
+}
+#zoomValue {
+  width: 50px;
+  text-align: center;
+}
