@@ -101,7 +101,7 @@ table {
   border-collapse: collapse;
   margin-top: 20px;
   width: 100%;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 th, td {
@@ -110,8 +110,10 @@ th, td {
   text-align: left;
   resize: horizontal;
   overflow: hidden;
-  min-width: 50px;
+  min-width: 120px;
   max-width: 1000px;
+  white-space: nowrap;
+  font-size: 13px;
 }
 
 th {
