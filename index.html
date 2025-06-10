@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>CSV Reader by elley</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: #eee;
+      padding: 20px;
+    }
+    input[type="file"] {
+      margin: 10px 0;
+    }
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    #columnsToggles {
+      margin-top: 10px;
+    }
+    table {
+      border-collapse: collapse;
+      margin-top: 20px;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 6px 10px;
+      text-align: left;
+      resize: horizontal;
+      overflow: auto;
+      min-width: 50px;
+      max-width: 1000px;
+    }
+    th {
+      background-color: #222;
+      position: sticky;
+      top: 0;
+    }
+    tr:nth-child(even) {
+      background-color: #1a1a1a;
+    }
+    .hidden-col {
+      display: none;
+    }
+    .zoom-wrapper {
+      transform-origin: top left;
+    }
+    #zoomValue {
+      width: 50px;
+      text-align: center;
+    }
+    #dropZone {
+      border: 2px dashed #555;
+      padding: 20px;
+      text-align: center;
+      margin-top: 20px;
+      background-color: #1a1a1a;
+      cursor: pointer;
+    }
+    #dropZone.dragover {
+      background-color: #333;
+    }
+    button {
+      background: #444;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>CSV Reader</h1>
+
+  <div id="controls">
+    <input type="file" id="csvFile" accept=".csv" />
+    <label for="zoom">Масштаб:</label>
+    <input type="range" id="zoom" min="0" max="1" step="0.01" value="1" />
+    <input type="text" id="zoomValue" value="100%" readonly />
+    <button id="clearBtn">Очистить всё</button>
+  </div>
+
+  <div id="dropZone">📥 Перетащи сюда .CSV файл</div>
+
+  <div id="columnsToggles"></div>
+  <div id="tableWrapper" class="zoom-wrapper">
+    <table id="output"></table>
+  </div>
+
+  <script>
+    const table = document.getElementById('output');
+    const togglesContainer = document.getElementById('columnsToggles');
+    const zoomInput = document.getElementById('zoom');
+    const zoomDisplay = document.getElementById('zoomValue');
+    const tableWrapper = document.getElementById('tableWrapper');
+    const dropZone = document.getElementById('dropZone');
+    const clearBtn = document.getElementById('clearBtn');
+
+    zoomInput.addEventListener('input', () => {
+      const scale = parseFloat(zoomInput.value);
+      tableWrapper.style.transform = `scale(${scale})`;
+      zoomDisplay.value = `${Math.round(scale * 100)}%`;
+      localStorage.setItem('csv_zoom', scale);
+    });
+
+    function saveColumnVisibility(index, visible) {
+      localStorage.setItem('csv_col_visibility_' + index, visible ? '1' : '0');
+    }
+
+    function getColumnVisibility(index) {
+      return localStorage.getItem('csv_col_visibility_' + index) !== '0';
+    }
+
+    function saveColumnWidth(index, width) {
+      localStorage.setItem('csv_col_width_' + index, width);
+    }
+
+    function getColumnWidth(index) {
+      return localStorage.getItem('csv_col_width_' + index);
+    }
+
+    function toggleColumn(e) {
+      const colIndex = e.target.dataset.colIndex;
+      const visible = e.target.checked;
+      const cells = document.querySelectorAll(`[data-col-index='${colIndex}']`);
+      cells.forEach(cell => cell.classList.toggle('hidden-col', !visible));
+      saveColumnVisibility(colIndex, visible);
+    }
+
+    function renderCsv(text) {
+      const rows = text.split('\n').filter(r => r.trim() !== '');
+      if (rows.length === 0) return;
+
+      const headers = rows[0].split(',');
+      const data = rows.slice(1).map(r => r.split(','));
+
+      table.innerHTML = '';
+      togglesContainer.innerHTML = '';
+
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+
+      headers.forEach((col, i) => {
+        const th = document.createElement('th');
+        th.textContent = col.trim();
+        th.dataset.colIndex = i;
+
+        const savedWidth = getColumnWidth(i);
+        if (savedWidth) th.style.width = savedWidth;
+
+        th.addEventListener('mouseup', () => {
+          saveColumnWidth(i, th.offsetWidth + 'px');
+        });
+
+        headerRow.appendChild(th);
+
+        const label = document.createElement('label');
+        label.style.marginRight = '10px';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = getColumnVisibility(i);
+        checkbox.dataset.colIndex = i;
+        checkbox.addEventListener('change', toggleColumn);
+        label.appendChild(checkbox);
+        label.append(" " + col.trim());
+        togglesContainer.appendChild(label);
+      });
+
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        row.forEach((cell, i) => {
+          const td = document.createElement('td');
+          td.textContent = cell.trim();
+          td.dataset.colIndex = i;
+          if (!getColumnVisibility(i)) td.classList.add('hidden-col');
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+
+      const savedZoom = localStorage.getItem('csv_zoom') || 1;
+      tableWrapper.style.transform = `scale(${savedZoom})`;
+      zoomInput.value = savedZoom;
+      zoomDisplay.value = `${Math.round(savedZoom * 100)}%`;
+    }
+
+    function loadCsvFromText(text) {
+      localStorage.setItem('csv_last_file', text);
+      renderCsv(text);
+    }
+
+    document.getElementById('csvFile').addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = e => loadCsvFromText(e.target.result);
+      reader.readAsText(file);
+    });
+
+    // Drag & Drop
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.csv')) {
+        const reader = new FileReader();
+        reader.onload = e => loadCsvFromText(e.target.result);
+        reader.readAsText(file);
+      }
+    });
+
+    // Очистка
+    clearBtn.addEventListener('click', () => {
+      if (confirm('Очистить таблицу и все сохранённые настройки?')) {
+        localStorage.clear();
+        location.reload();
+      }
+    });
+
+    // Автовосстановление
+    const savedCsv = localStorage.getItem('csv_last_file');
+    if (savedCsv) renderCsv(savedCsv);
+  </script>
+</body>
+</html>
