@@ -1,81 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>CSV Reader by elley</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #111;
-      color: #eee;
-      padding: 20px;
-    }
-    input[type="file"] {
-      margin: 10px 0;
-    }
-    #controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-    #columnsToggles {
-      margin-top: 10px;
-    }
-    table {
-      border-collapse: collapse;
-      margin-top: 20px;
-      width: 100%;
-    }
-    th, td {
-      border: 1px solid #444;
-      padding: 6px 10px;
-      text-align: left;
-      resize: horizontal;
-      overflow: auto;
-      min-width: 50px;
-      max-width: 1000px;
-    }
-    th {
-      background-color: #222;
-      position: sticky;
-      top: 0;
-    }
-    tr:nth-child(even) {
-      background-color: #1a1a1a;
-    }
-    .hidden-col {
-      display: none;
-    }
-    .zoom-wrapper {
-      transform-origin: top left;
-    }
-    #zoomValue {
-      width: 50px;
-      text-align: center;
-    }
-    #dropZone {
-      border: 2px dashed #555;
-      padding: 20px;
-      text-align: center;
-      margin-top: 20px;
-      background-color: #1a1a1a;
-      cursor: pointer;
-    }
-    #dropZone.dragover {
-      background-color: #333;
-    }
-    button {
-      background: #444;
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #666;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <h1>CSV Reader</h1>
@@ -83,14 +11,15 @@
   <div id="controls">
     <input type="file" id="csvFile" accept=".csv" />
     <label for="zoom">Масштаб:</label>
-    <input type="range" id="zoom" min="0" max="1" step="0.01" value="1" />
+    <input type="range" id="zoom" min="0.1" max="1" step="0.01" value="1" />
     <input type="text" id="zoomValue" value="100%" readonly />
+    <button id="saveBtn">💾 Сохранить</button>
     <button id="clearBtn">Очистить всё</button>
   </div>
 
   <div id="dropZone">📥 Перетащи сюда .CSV файл</div>
-
   <div id="columnsToggles"></div>
+
   <div id="tableWrapper" class="zoom-wrapper">
     <table id="output"></table>
   </div>
@@ -103,6 +32,7 @@
     const tableWrapper = document.getElementById('tableWrapper');
     const dropZone = document.getElementById('dropZone');
     const clearBtn = document.getElementById('clearBtn');
+    const saveBtn = document.getElementById('saveBtn');
 
     zoomInput.addEventListener('input', () => {
       const scale = parseFloat(zoomInput.value);
@@ -206,7 +136,6 @@
     document.getElementById('csvFile').addEventListener('change', function (event) {
       const file = event.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = e => loadCsvFromText(e.target.result);
       reader.readAsText(file);
@@ -217,15 +146,12 @@
       e.preventDefault();
       dropZone.classList.add('dragover');
     });
-
     dropZone.addEventListener('dragleave', () => {
       dropZone.classList.remove('dragover');
     });
-
     dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.classList.remove('dragover');
-
       const file = e.dataTransfer.files[0];
       if (file && file.name.endsWith('.csv')) {
         const reader = new FileReader();
@@ -240,6 +166,36 @@
         localStorage.clear();
         location.reload();
       }
+    });
+
+    // Сохранение
+    saveBtn.addEventListener('click', () => {
+      if (!table.innerText.trim()) {
+        alert('Нет данных для сохранения');
+        return;
+      }
+
+      const format = prompt('В каком формате сохранить? Введите "csv" или "txt":').trim().toLowerCase();
+      if (!['csv', 'txt'].includes(format)) {
+        alert('Неверный формат. Введите "csv" или "txt".');
+        return;
+      }
+
+      const rows = [];
+      table.querySelectorAll('tr').forEach(tr => {
+        const cells = Array.from(tr.querySelectorAll('th, td'))
+          .filter(cell => !cell.classList.contains('hidden-col'))
+          .map(cell => cell.textContent.trim());
+        rows.push(format === 'csv' ? cells.join(',') : cells.join(':'));
+      });
+
+      const blob = new Blob([rows.join('\n')], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `export_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
     });
 
     // Автовосстановление
