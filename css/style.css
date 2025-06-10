@@ -1,8 +1,40 @@
+:root {
+  --bg-color: #111;
+  --text-color: #eee;
+  --table-border: #444;
+  --th-bg: #222;
+  --tr-alt-bg: #1a1a1a;
+  --drop-bg: #1a1a1a;
+  --drop-hover-bg: #333;
+  --btn-bg: #444;
+  --btn-hover-bg: #666;
+  --accent-color: #4caf50;
+}
+
+[data-theme="light"] {
+  --bg-color: #fff;
+  --text-color: #000;
+  --table-border: #ccc;
+  --th-bg: #f0f0f0;
+  --tr-alt-bg: #fafafa;
+  --drop-bg: #f9f9f9;
+  --drop-hover-bg: #ddd;
+  --btn-bg: #ddd;
+  --btn-hover-bg: #bbb;
+  --accent-color: #2196f3;
+}
+
 body {
   font-family: sans-serif;
-  background: #111;
-  color: #eee;
+  background: var(--bg-color);
+  color: var(--text-color);
   padding: 20px;
+  margin: 0;
+  transition: background 0.3s, color 0.3s;
+}
+
+h1 {
+  margin-top: 0;
 }
 
 #controls {
@@ -13,38 +45,43 @@ body {
   margin-bottom: 10px;
 }
 
-input[type="file"] {
-  margin-right: 10px;
+input[type="file"],
+input[type="range"],
+input[type="text"],
+button {
+  font-size: 14px;
 }
 
 #zoomValue {
-  width: 50px;
+  width: 60px;
   text-align: center;
 }
 
 button {
-  background: #444;
-  color: #fff;
+  background: var(--btn-bg);
+  color: var(--text-color);
   border: none;
   padding: 8px 14px;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 button:hover {
-  background: #666;
+  background: var(--btn-hover-bg);
 }
 
 #dropZone {
-  border: 2px dashed #555;
+  border: 2px dashed var(--table-border);
   padding: 20px;
   text-align: center;
-  background-color: #1a1a1a;
+  background-color: var(--drop-bg);
   cursor: pointer;
   margin-bottom: 20px;
+  transition: background 0.2s;
 }
 
 #dropZone.dragover {
-  background-color: #333;
+  background-color: var(--drop-hover-bg);
 }
 
 #columnsToggles {
@@ -68,7 +105,7 @@ table {
 }
 
 th, td {
-  border: 1px solid #444;
+  border: 1px solid var(--table-border);
   padding: 6px 10px;
   text-align: left;
   resize: horizontal;
@@ -78,15 +115,41 @@ th, td {
 }
 
 th {
-  background-color: #222;
+  background-color: var(--th-bg);
   position: sticky;
   top: 0;
 }
 
 tr:nth-child(even) {
-  background-color: #1a1a1a;
+  background-color: var(--tr-alt-bg);
 }
 
 .hidden-col {
   display: none;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  #controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #columnsToggles {
+    flex-direction: column;
+  }
+
+  table, th, td {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  table, th, td {
+    font-size: 12px;
+  }
+
+  button {
+    width: 100%;
+  }
 }
